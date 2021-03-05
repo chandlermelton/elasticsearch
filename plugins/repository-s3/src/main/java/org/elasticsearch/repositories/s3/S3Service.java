@@ -139,7 +139,8 @@ class S3Service extends AbstractComponent implements Closeable {
         builder.withClientConfiguration(buildConfiguration(clientSettings));
 
         final String endpoint = Strings.hasLength(clientSettings.endpoint) ? clientSettings.endpoint : Constants.S3_HOSTNAME;
-        logger.debug("using endpoint [{}]", endpoint);
+        final String region = Strings.hasLength(clientSettings.region) ? clientSettings.region : null;
+        logger.debug("using endpoint [{}] and region [{}]", endpoint, region);
 
         // If the endpoint configuration isn't set on the builder then the default behaviour is to try
         // and work out what region we are in and use an appropriate endpoint - see AwsClientBuilder#setRegion.
@@ -149,7 +150,13 @@ class S3Service extends AbstractComponent implements Closeable {
         //
         // We do this because directly constructing the client is deprecated (was already deprecated in 1.1.223 too)
         // so this change removes that usage of a deprecated API.
-        builder.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, null));
+        builder.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region));
+        if (clientSettings.pathStyleAccess) {
+            builder.enablePathStyleAccess();
+        }
+        if (clientSettings.disableChunkedEncoding) {
+            builder.disableChunkedEncoding();
+        }
 
         return builder.build();
     }
@@ -168,6 +175,10 @@ class S3Service extends AbstractComponent implements Closeable {
             clientConfiguration.setProxyPort(clientSettings.proxyPort);
             clientConfiguration.setProxyUsername(clientSettings.proxyUsername);
             clientConfiguration.setProxyPassword(clientSettings.proxyPassword);
+        }
+
+        if (Strings.hasLength(clientSettings.signerOverride)) {
+            clientConfiguration.setSignerOverride(clientSettings.signerOverride);
         }
 
         clientConfiguration.setMaxErrorRetry(clientSettings.maxRetries);

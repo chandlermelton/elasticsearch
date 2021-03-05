@@ -36,6 +36,7 @@ import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.RestResponse;
 import org.elasticsearch.rest.action.admin.cluster.RestGetRepositoriesAction;
+import org.elasticsearch.test.ESIntegTestCase;
 import org.elasticsearch.test.rest.FakeRestRequest;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -53,8 +54,11 @@ import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertAcke
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.Mockito.mock;
 
+// Need to set up a new cluster for each test because cluster settings use randomized authentication settings
+@ESIntegTestCase.ClusterScope(scope = ESIntegTestCase.Scope.TEST)
 public class S3BlobStoreRepositoryTests extends ESBlobStoreRepositoryIntegTestCase {
 
     // Static list of blobs shared among all nodes in order to act like a remote repository service:
